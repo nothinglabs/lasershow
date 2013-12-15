@@ -17,12 +17,17 @@ import serial
 from time import sleep
 import twitter
 
-api = twitter.Api()
-ser = serial.Serial('COM7', 9600)
+api = twitter.Api(consumer_key='yDkaORxEcwX6SheX6pa1fw',
+                      consumer_secret='VYIGd2KITohR4ygmHrcyZgV0B74CXi5wsT1eryVtw',
+                      access_token_key='227846642-8IjK2K32CDFt3682SNOOpnzegAja3TyVpzFOGrQj',
+                      access_token_secret='L6of20EZdBv48EA2GE8Js6roIfZFnCKBpoPwvBDxF8',
+                      cache=None)
+
+ser = serial.Serial('COM21', 2400)
 
 #searchstring in CAPS
-searchString = "#INSTRUCTABLES"
-tweetsToGet = 20
+searchString = "ADASBOOKS"
+tweetsToGet = 10
 filterRetweets = True
 
 #keeps arduino from rebooting
@@ -32,41 +37,56 @@ sleep(2)
 
 #main loop
 while True:
+
+	print ("Starting script")
 	
 	#hard coded 'intro' to display each loop - always end messages with \r\n!
 	waitForReady();
 	ser.write ("LASERTWEET - LINK TO INSTRUCTABLE AT NOTHINGLABS.COM\r\n")
 
-	statuses = api.GetSearch(searchString, per_page=tweetsToGet, page=1)
-	
-	statusesNoRT = []
-	for tweet in statuses:
-		if tweet.text.find("RT @") == -1:
-			statusesNoRT.append(tweet)
-	
-	summary = "-----" + str(len(statuses)) + " TWEETS FOUND CONTAINING '" + searchString + "' (" + \
-			str(len(statuses)-len(statusesNoRT)) + " RETWEETS)" + "-----\r\n"
-	
-	if filterRetweets:
-		statuses = statusesNoRT
-		summary = summary.replace("RETWEETS", "RETWEETS REMOVED")
+	print ("Scanning twitter")
 
 	waitForReady();
-	print (summary)
-	ser.write (summary)
 
-	for tweet in statuses:
-		
-		#convert to uppercase / cleanup
-		laserString = tweet.user.screen_name.upper() + ":" + removeNonAscii(tweet.text).upper()
-		laserString = laserString .replace("&AMP", "&")
-		
-		#remove any stray new lines - and add \r\n at end
-		laserString = laserString .replace("\n", "")
-		laserString = laserString .replace("\r", "")
-		laserString = laserString + "\r\n"
-		
+
+
+	try:
+
+		statuses = api.GetSearch(searchString, count = 10)
+
+		statusesNoRT = []
+		for tweet in statuses:
+			if tweet.text.find("RT @") == -1:
+				statusesNoRT.append(tweet)
+	
+		summary = "-----" + str(len(statuses)) + " TWEETS FOUND CONTAINING '" + searchString + "' (" + \
+				str(len(statuses)-len(statusesNoRT)) + " RETWEETS)" + "-----\r\n"
+	
+		if filterRetweets:
+			statuses = statusesNoRT
+			summary = summary.replace("RETWEETS", "RETWEETS REMOVED")
+
 		waitForReady();
-		print (laserString)
-		ser.write(laserString)
+		print (summary)
+		ser.write (summary)
+
+		for tweet in statuses:
+		
+			#convert to uppercase / cleanup
+			laserString = tweet.user.screen_name.upper() + ":" + removeNonAscii(tweet.text).upper()
+			laserString = laserString .replace("&AMP", "&")
+		
+			#remove any stray new lines - and add \r\n at end	
+			laserString = laserString .replace("\n", "")
+			laserString = laserString .replace("\r", "")
+			laserString = laserString + "\r\n"
+			
+			waitForReady();
+			print (laserString)
+			ser.write(laserString)
+		break
+	except:
+		print ("NETWORK FAIL!!!")
+		waitForReady();
+		ser.write ("UNABLE TO ACCESS TWITTER - NETWORK FAIL!!!\r\n")
 
