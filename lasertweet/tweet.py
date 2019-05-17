@@ -17,10 +17,10 @@ import serial
 from time import sleep
 import twitter
 
-api = twitter.Api(consumer_key='yDkaORxEcwX6SheX6pa1fw',
-                      consumer_secret='VYIGd2KITohR4ygmHrcyZgV0B74CXi5wsT1eryVtw',
-                      access_token_key='227846642-8IjK2K32CDFt3682SNOOpnzegAja3TyVpzFOGrQj',
-                      access_token_secret='L6of20EZdBv48EA2GE8Js6roIfZFnCKBpoPwvBDxF8',
+api = twitter.Api(consumer_key='',
+                      consumer_secret='',
+                      access_token_key='',
+                      access_token_secret='',
                       cache=None)
 
 ser = serial.Serial('COM21', 2400)
